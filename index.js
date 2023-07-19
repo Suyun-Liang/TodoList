@@ -2,9 +2,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const _ = require('lodash');
 const { name } = require('ejs');
+require('dotenv').config();
 
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
 // setup templates, bodyparser, local files
 app.set('view engine', 'ejs');
@@ -13,7 +14,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.static("public"));
 
 // create a database
-mongoose.connect('mongodb://127.0.0.1:27017/todolistDB');
+mongoose.connect(`${process.env.MONGO_URL}`);
 
 const itemsSchema = mongoose.Schema({
     name: String
@@ -45,9 +46,12 @@ app.get('/', function(req, res) {
     .then(value => {
         if(value.length === 0) {
             Item.create(defaultItems)
-                .then(() => console.log('successfully insert default items'))
+                .then(() => {
+                    console.log('successfully insert default items');
+                    res.redirect('/');
+                })
                 .catch(err => console.log(err));
-            res.redirect('/');
+            
         }
 
         res.render('ListMain', {listTitle: "Today", listItems: value, path: req.path});
@@ -115,6 +119,6 @@ app.get('/:customListName', function(req,res) {
 });
 
 
-app.listen(port, function() {
-    console.log('Server is running on ' + port);
+app.listen(PORT, function() {
+    console.log('Server is running on ' + PORT);
 });
